@@ -1,0 +1,21 @@
+[2024-11-30 21:44:17] Game Started
+[2024-11-30 21:57:40] Game Started
+[2024-11-30 21:57:45] New enemy with id 4created!
+[2024-11-30 21:57:50] New enemy with id 1created!
+[2024-11-30 21:57:55] New enemy with id 4created!
+[2024-11-30 21:57:59] Enemy with id 4entered the base!
+[2024-11-30 21:58:00] New enemy with id 4created!
+[2024-11-30 21:58:03] Card with ID 13 placed at {2, 3}.
+[2024-11-30 21:58:03] New card with id 11added to your cards box!
+[2024-11-30 21:58:04] Enemy with id 1entered the base!
+[2024-11-30 21:58:05] New enemy with id 4created!
+[2024-11-30 21:58:05] Card with ID 2 placed at {4, 1}.
+[2024-11-30 21:58:05] New card with id 14added to your cards box!
+[2024-11-30 21:58:09] Enemy with id 4entered the base!
+[2024-11-30 21:58:10] New enemy with id 1created!
+[2024-11-30 21:58:14] Enemy with id 4entered the base!
+[2024-11-30 21:58:15] New enemy with id 4created!
+[2024-11-30 21:58:19] Enemy with id 4entered the base!
+[2024-11-30 21:58:20] New enemy with id 1created!
+[2024-11-30 21:58:24] Enemy with id 1entered the base!
+[2024-11-30 21:58:25] New enemy with id 2created!
