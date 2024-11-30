@@ -1,5 +1,7 @@
 package com.example.rushroyalegame;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -7,12 +9,18 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class MainPageController {
@@ -20,6 +28,8 @@ public class MainPageController {
     final int ROW = 5;
     final int COL = 6;
     final int CARD_LIST_SIZE = 4;
+    final String LOG_FILE_PATH = "/media/fatima/Fatima/Term7/AP/midProj/RushRoyaleGame/src/main/java/com/example/rushroyalegame/log.txt";
+    final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @FXML
     GridPane mainBoard;
@@ -28,9 +38,12 @@ public class MainPageController {
     @FXML
     AnchorPane anchorPane;
 
+    List<Enemy> enemyList = new ArrayList<>();
+    List<Enemy> currentEnemies = new ArrayList<>();
     List<Card> cardsList = new ArrayList<>();
     List<Card> currentCards = new ArrayList<>();
     Card selectedCard;
+    int enemyRespawnTime = 5;
 
     double clickedX, clickedY;
 
@@ -64,7 +77,16 @@ public class MainPageController {
         anchorPane.getChildren().add(cardsBox);
         anchorPane.getChildren().add(mainBoard);
 
-        String jsonContent = new String(Files.readAllBytes(Paths.get("/media/fatima/Fatima/Term7/AP/midProj/RushRoyaleGame/src/main/java/com/example/rushroyalegame/CardsInfo.json")));
+        String jsonContent = new String(Files.readAllBytes(Paths.get("/media/fatima/Fatima/Term7/AP/midProj/RushRoyaleGame/src/main/java/com/example/rushroyalegame/EnemiesInfo.json")));
+        JSONArray enemiesInfo = new JSONArray(jsonContent);
+        for (int i = 0; i < enemiesInfo.length(); i++) {
+            JSONObject enemyInfo = new JSONObject();
+            enemyInfo = enemiesInfo.getJSONObject(i);
+            Enemy enemy = new Enemy(enemyInfo.getInt("id"), enemyInfo.getString("path"));
+            enemyList.add(enemy);
+        }
+
+        jsonContent = new String(Files.readAllBytes(Paths.get("/media/fatima/Fatima/Term7/AP/midProj/RushRoyaleGame/src/main/java/com/example/rushroyalegame/CardsInfo.json")));
         JSONArray cardsInfo = new JSONArray(jsonContent);
         for (int i = 0; i < cardsInfo.length(); i++) {
             JSONObject cardInfo = new JSONObject();
@@ -80,10 +102,79 @@ public class MainPageController {
         for (int i = 0; i < currentCards.size(); i++) {
             updateCell("cardsBox", 0, i);
         }
+        log("Game Started");
 
         anchorPane.setOnMouseClicked(event -> {
             checkClick(event.getX(), event.getY());
         });
+
+        Timeline enemyTimeline = new Timeline(new KeyFrame(Duration.seconds(enemyRespawnTime), event -> addRandomEnemy()));
+        enemyTimeline.setCycleCount(Timeline.INDEFINITE);
+        enemyTimeline.play();
+
+        Timeline mapUpdateTimeLine = new Timeline(new KeyFrame(Duration.seconds(1), event -> updateMap()));
+        mapUpdateTimeLine.setCycleCount(Timeline.INDEFINITE);
+        mapUpdateTimeLine.play();
+    }
+
+    public void log(String message) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE_PATH, true))) {
+            String timestamp = LocalDateTime.now().format(FORMATTER);
+            writer.write("[" + timestamp + "] " + message);
+            writer.newLine();
+        } catch (IOException e) {
+            System.err.println("Failed to write to log file: " + e.getMessage());
+        }
+    }
+
+    public void addRandomEnemy() {
+        Random random = new Random();
+        int rand = random.nextInt(enemyList.size());
+        Enemy enemy = new Enemy(enemyList.get(rand).getId(), enemyList.get(rand).getImagePath());
+        enemy.setCol(0);
+        enemy.setRow(ROW - 1);
+        currentEnemies.add(enemy);
+        log("New enemy with id " + enemy.getId() + " created!");
+    }
+
+    public void updateMap() {
+        for (int i = 0; i < currentEnemies.size(); i++) {
+            Enemy currentEnemy = currentEnemies.get(i);
+            if (currentEnemy.getCol() == -1 || currentEnemy.getRow() == -1)
+                continue;
+            else {
+                if(currentEnemy.getRow() != ROW - 1 || currentEnemy.getCol() != 0) {
+                    if(currentEnemy.getCol() == 0) {
+                        Node node = findNode("mainBoard", currentEnemy.getRow() + 1, currentEnemy.getCol());
+                        ((Pane) node).getChildren().removeIf(child -> child instanceof ImageView);
+                    } else if(currentEnemy.getRow() == 0){
+                        Node node = findNode("mainBoard", currentEnemy.getRow(), currentEnemy.getCol() - 1);
+                        ((Pane) node).getChildren().removeIf(child -> child instanceof ImageView);
+                    } else{
+                        Node node = findNode("mainBoard", currentEnemy.getRow() - 1, currentEnemy.getCol());
+                        ((Pane) node).getChildren().removeIf(child -> child instanceof ImageView);
+                    }
+                }
+                if(currentEnemy.getRow() >= ROW){
+                    log("Enemy with id " + currentEnemy.getId() + " entered the base!");
+                    currentEnemies.remove(currentEnemy);
+                    i--;
+                    continue;
+                }
+                Node node = findNode("mainBoard", currentEnemy.getRow(), currentEnemy.getCol());
+                ImageView enemyImageView = new ImageView();
+                enemyImageView.setImage(new Image("file:" + currentEnemy.getImagePath()));
+                enemyImageView.setFitWidth(CELL_SIZE);
+                enemyImageView.setFitHeight(CELL_SIZE);
+                ((Pane) node).getChildren().add(enemyImageView);
+                if(currentEnemy.getRow() > 0 && currentEnemy.getCol() == 0)
+                    currentEnemy.setRow(currentEnemy.getRow() - 1);
+                else if(currentEnemy.getRow() == 0 && currentEnemy.getCol() != COL - 1)
+                    currentEnemy.setCol(currentEnemy.getCol() + 1);
+                else
+                    currentEnemy.setRow(currentEnemy.getRow() + 1);
+            }
+        }
     }
 
     public Card getRandomCard() {
@@ -112,6 +203,7 @@ public class MainPageController {
                 cardImageView.setFitWidth(CELL_SIZE);
                 cardImageView.setFitHeight(CELL_SIZE);
                 ((Pane) node).getChildren().add(cardImageView);
+                log("Card with ID " + card.getId() + " placed at {" + row + ", " + col + "}.");
                 return true;
             } else {
                 System.out.println("The cell is already occupied!");
@@ -129,7 +221,7 @@ public class MainPageController {
             col = (int) Math.floor((x - mainBoard.getLayoutX()) / CELL_SIZE);
             if (selectedCard != null) {
                 boolean updated = updateCell("mainBoard", row, col);
-                if(updated) {
+                if (updated) {
                     int index = findCurrentCardsIndex(selectedCard);
                     cardsList.add(selectedCard);
                     selectedCard = null;
@@ -137,6 +229,7 @@ public class MainPageController {
                     currentCards.set(index, randomCard);
                     cardsList.remove(randomCard);
                     updateCell("cardsBox", 0, index);
+                    log("New card with id " + randomCard.getId() + " added to your cards box!");
                 }
             }
         } else if (x >= cardsBox.getLayoutX() && x <= cardsBox.getLayoutX() + cardsBox.getWidth()
