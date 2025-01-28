@@ -1,25 +1,30 @@
 package com.example.rushroyalegame;
 
 public class Soldier extends Enemy{
-    private int health;
-    private int speed;
-    public Soldier(int id, String imagePath){
-        super(id, imagePath);
-    }
+    private float health;
+    private float speed;
 
-    public int getHealth() {
+    public Soldier(int id, String imagePath, float health, float speed){
+        super(id, imagePath);
+        this.health = health;
+        this.speed = speed;
+    }
+    public Boolean isDead(){
+        return health <= 0;
+    }
+    public float getHealth() {
         return health;
     }
 
-    public int getSpeed() {
+    public float getSpeed() {
         return speed;
     }
 
-    public void setHealth(int health) {
+    public void setHealth(float health) {
         this.health = health;
     }
 
-    public void setSpeed(int speed) {
+    public void setSpeed(float speed) {
         this.speed = speed;
     }
 }

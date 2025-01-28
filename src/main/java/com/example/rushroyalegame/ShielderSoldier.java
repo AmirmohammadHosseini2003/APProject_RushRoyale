@@ -1,9 +1,10 @@
 package com.example.rushroyalegame;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ShielderSoldier extends Soldier{
     public ShielderSoldier(int id, String imagePath){
-        super(id, imagePath);
-        super.setHealth(100);
-        super.setSpeed(2);
+        super(id, imagePath, 100, 2);
     }
 }

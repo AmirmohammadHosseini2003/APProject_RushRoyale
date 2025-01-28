@@ -6,9 +6,6 @@ public class FreezerBoss extends Boss{
         super(id, imagePath);
         freezeTime = 5;
     }
-    public Boolean isDead(){
-        return super.getHealth() <= 0;
-    }
 
     public int getFreezeTime() {
         return freezeTime;

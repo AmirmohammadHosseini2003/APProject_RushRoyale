@@ -6,9 +6,6 @@ public class EraserBoss extends Boss{
         super(id,imagePath);
         eraseTime = 7;
     }
-    public Boolean isDead(){
-        return super.getHealth() <= 0;
-    }
 
     public int getEraseTime() {
         return eraseTime;
